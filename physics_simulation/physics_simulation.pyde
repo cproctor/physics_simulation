@@ -9,18 +9,18 @@ WIDTH = 800
 HEIGHT = 800
 NUM_NODES = 300
 CLICK_RADIUS = 50
-LIVE = False
+LIVE = True
 CSV_FILE = "simulation.csv"
 
 sim = Simulation(
     wt=WIDTH, 
     ht=HEIGHT, 
-    nodes = node_grid(WIDTH, HEIGHT, 15, 15, jitter=20),
-    unary_forces=[[pull_to_center, 0]],
+    nodes = node_grid(WIDTH, HEIGHT, 15, 15, jitter=0),
+    unary_forces=[[pull_to_center, 5]],
     binary_forces=[
         #[repulsion, 0.1],
         [aggregation, 1],
-        [personal_space, 3],
+        #[personal_space, 3],
         [change_size, 20]
     ], 
 )
@@ -38,7 +38,8 @@ def draw():
             ellipse(node.x, node.y, 10, 10)
         else:
             fill(255)
-            ellipse(node.x, node.y, node.size, node.size)
+            ellipse(node.x, node.y, 5, 5)
+            #ellipse(node.x, node.y, node.size, node.size)
     noFill()
     stroke(255)
     rect(WIDTH/4, HEIGHT/4, WIDTH/2, HEIGHT/2)
