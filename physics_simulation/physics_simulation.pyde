@@ -1,48 +1,55 @@
 # In this sketch, each point exerts forces on its neighbors. 
 # This allows local structure, such as a consistent spacing between points. 
 
-from forces import repulsion, pull_to_center, aggregation, personal_space, change_size
+from forces import *
 from node import Node, random_nodes, node_grid
 from simulation import Simulation
+from settings import *
 
-WIDTH = 800
-HEIGHT = 800
-NUM_NODES = 300
-CLICK_RADIUS = 50
-LIVE = True
-CSV_FILE = "simulation.csv"
+nodes = node_grid(350, 350, 100, 100, 5, 5, jitter=2)
+for node in nodes:
+    node.mass = randomGaussian() * 10
 
 sim = Simulation(
     wt=WIDTH, 
     ht=HEIGHT, 
-    nodes = node_grid(WIDTH, HEIGHT, 15, 15, jitter=0),
-    unary_forces=[[pull_to_center, 5]],
+    #nodes = node_grid(0, 0, WIDTH, HEIGHT, 5, 5, jitter=0),
+    nodes = nodes,
+    unary_forces=[
+        pull_to_center
+    ],
     binary_forces=[
-        #[repulsion, 0.1],
-        [aggregation, 1],
-        #[personal_space, 3],
-        [change_size, 20]
+        repulsion,
+        control_node_aggregation,
     ], 
 )
 
 def setup():
     size(WIDTH, HEIGHT)
+    background(0)
     noStroke()
+    for node in sim.nodes:
+        node.draw()
+    sim.drawVoronoi()
+    sim.label_nodes()
     
 def draw():
     background(1)
     noStroke()
     for node in sim.nodes:
+        node.draw()
+        
         if node.control:
             fill(0,0,255)
-            ellipse(node.x, node.y, 10, 10)
+            ellipse(node.position.x, node.position.y, 10, 10)
         else:
             fill(255)
-            ellipse(node.x, node.y, 5, 5)
+            ellipse(node.position.x, node.position.y, 5, 5)
             #ellipse(node.x, node.y, node.size, node.size)
-    noFill()
-    stroke(255)
-    rect(WIDTH/4, HEIGHT/4, WIDTH/2, HEIGHT/2)
+
+    sim.drawRectangle()
+    sim.drawVoronoi()
+    
     if LIVE:
         sim.step()
     
@@ -56,6 +63,8 @@ def keyPressed():
         LIVE = True
     if key == 's':
         sim.export_csv(CSV_FILE)
+    if key == 'v':
+        sim.drawVoronoi()
     
 def keyReleased():
     if key == ' ':

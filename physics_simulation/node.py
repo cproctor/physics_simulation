@@ -1,30 +1,43 @@
 class Node:
-    def __init__(self, x, y, size=1, control=False, fixed=False):
-        self.x = x
-        self.y = y
-        self.size = size
+    def __init__(self, x, y, mass=1, control=False, fixed=False):
+        self.mass = mass
         self.control = control
         self.fixed = fixed
-        self.neighors = []
-        
-    def distance(self, other_node):
-        return sqrt((other_node.x - self.x) ** 2 + (other_node.y - self.y) ** 2)
+        self.position = PVector(x, y)
+        self.velocity = PVector(0,0)
+        self.acceleration = PVector(0,0)
     
-    def vector_to(self, other_node, length=1):
-        vector_length = self.distance(other_node)
-        unit_vector = [(other_node.x - self.x)/vector_length, (other_node.y - self.y)/vector_length]
-        return [sqrt(length) * i for i in unit_vector]
+    def apply_force(self, force_vector):
+        "Uses F=MA to update acceleration based on force applied."
+        self.acceleration += force_vector / self.mass
+    
+    def step(self):
+        "Updates the node through a moment in time."
+        self.velocity += self.acceleration
+        if not self.fixed:
+            self.position += self.velocity
+        self.acceleration = PVector(0,0)
+        
+    def draw(self):
+        if self.control:
+            fill(0,0,255)
+            ellipse(self.position.x, self.position.y, 10, 10)
+        else:
+            fill(255)
+            ellipse(self.position.x, self.position.y, 5, 5)
+            #ellipse(node.x, node.y, node.size, node.size)
+        
     
 # Generating functions
 def random_nodes(wt, ht, count):
     return [Node(random(wt), random(ht), 1) for i in range(count)]
 
-def node_grid(wt, ht, rows, cols, jitter=0):
+def node_grid(x, y, wt, ht, rows, cols, jitter=0):
     xSpace = wt/cols
     ySpace = ht/rows
-    grid = [Node(i + xSpace/2, j + ySpace/2) for i in range(0, wt, xSpace) for j in range(0, ht, ySpace)]
+    grid = [Node(x + i + xSpace/2, y + j + ySpace/2) for i in range(0, wt, xSpace) for j in range(0, ht, ySpace)]
     if jitter:
         for node in grid:
-            node.x += randomGaussian() * jitter
-            node.y += randomGaussian() * jitter
+            node.position.x += randomGaussian() * jitter
+            node.position.y += randomGaussian() * jitter
     return grid

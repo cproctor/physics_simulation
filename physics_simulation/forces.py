@@ -1,45 +1,32 @@
-# Forces are functions which takes two Nodes and returns a (x,y)
-# position update caused by the force. 
+# Forces are functions which take one or two Nodes (unary or binary) and return a 
+# 2-dimensional PVector(x,y) 
 
-FORCE_MAX = 10
-PERSONAL_SPACE = 20
-AGGREGATION_MIDPOINT = 500
-AGGREGATION_STEEPNESS = 0.5
-SIZE_MIDPOINT = 0
-SIZE_STEEPNESS = 0.01
+from settings import *
 
 from functions import make_sigmoid, make_exponential
 
-def repulsion(n1, n2, strength=1, sim=None):
+def repulsion(n1, n2, sim=None):
     "Causes all nodes to be repelled from each other, like gravity but in reverse."
-    distance = min((strength * n1.size * n1.size) / (n1.distance(n2) ** 2), FORCE_MAX)
-    return [i for i in n2.vector_to(n1, length=distance)]
+    v = n1.position - n2.position
+    v.setMag(REPULSION_STRENGTH / (n1.position.dist(n2.position) ** 2))
+    return v
 
 aggregation_strength = make_sigmoid(AGGREGATION_MIDPOINT, AGGREGATION_STEEPNESS)
 
-def aggregation(n1, n2, strength=1, sim=None):
-    "Applies gravity for control nodes"
-    if not n2.control: 
-        return [0,0]
-    else:
-        return n1.vector_to(n2, length=aggregation_strength(n1.distance(n2)))
-    
-def personal_space(n1, n2, strength=1, sim=None):
-    "Enforces "
-    if n1.distance(n2) < n1.size + n2.size + PERSONAL_SPACE:
-        return n2.vector_to(n1, length=strength * n1.size)
-    else:
-        return [0,0]
-    
-def pull_to_center(n1, strength=1, sim=None):
-    "Pulls nodes toward the center"
-    return [strength * i for i in n1.vector_to(sim.center, length=1)]
+def control_node_aggregation(n1, n2, sim=None):
+    "Pulls nodes toward control nodes"
+    if not n2.control: return PVector(0,0)
+    v = n2.position - n1.position
+    v.setMag(aggregation_strength(n1.position.dist(n2.position)))
+    return v
 
-node_size = make_sigmoid(SIZE_MIDPOINT, SIZE_STEEPNESS)
+def pull_to_center(n, sim=None):
+    "Pulls all nodes toward the center"
+    v = sim.center.position - n.position
+    v.setMag(PULL_TO_CENTER_STRENGTH)
+    return v
 
-def change_size(n1, n2, strength=1, sim=None):
-    "A fake force which causes the size of nodes to change"
-    if n2.control:
-        n1.size = max(n1.size, strength * node_size(n1.distance(n2)))
-    return [0,0]
+def friction(n1, sim=None):
+    v = n.velocity.copy() * -1
+    v.setMag(FRICTION_STRENGTH)
     
