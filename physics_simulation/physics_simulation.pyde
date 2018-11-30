@@ -4,16 +4,25 @@
 from forces import *
 from node import Node, random_nodes, node_grid
 from simulation import Simulation
+from math import sqrt
 from settings import *
 
-nodes = node_grid(350, 350, 100, 100, 5, 5, jitter=2)
-for node in nodes:
-    node.mass = randomGaussian() * 10
+if INITIAL_NODE_LAYOUT == 'random':
+    nodes = random_nodes(WIDTH, HEIGHT, NUM_NODES)
+elif INITIAL_NODE_LAYOUT == 'grid':
+    gridSize = int(sqrt(NUM_NODES))
+    print(gridSize)
+    nodes = node_grid(350, 350, 100, 100, gridSize, gridSize, jitter=2)
+else:
+    raise ValueError("Invalid value for INITIAL_NODE_LAYOUT")
 
+if NODE_MASS == "random":
+    for node in nodes:
+        node.mass = randomGaussian() * 10
+    
 sim = Simulation(
     wt=WIDTH, 
     ht=HEIGHT, 
-    #nodes = node_grid(0, 0, WIDTH, HEIGHT, 5, 5, jitter=0),
     nodes = nodes,
     unary_forces=[
         pull_to_center
@@ -45,14 +54,12 @@ def draw():
         else:
             fill(255)
             ellipse(node.position.x, node.position.y, 5, 5)
-            #ellipse(node.x, node.y, node.size, node.size)
-
-    sim.drawRectangle()
+    if SHOW_RECTANGLE:
+        sim.drawRectangle()
     sim.drawVoronoi()
     
     if LIVE:
         sim.step()
-    
     
 def mouseClicked():
     add_attractor(mouseX, mouseY)
@@ -63,8 +70,6 @@ def keyPressed():
         LIVE = True
     if key == 's':
         sim.export_csv(CSV_FILE)
-    if key == 'v':
-        sim.drawVoronoi()
     
 def keyReleased():
     if key == ' ':
@@ -73,10 +78,8 @@ def keyReleased():
         
 def add_attractor(x, y):  
     attractor = Node(x, y, control=True, fixed=True)
+    # Prevent nodes on top of each other (zero-division error)
+    for node in sim.nodes: 
+        if node.position.dist(attractor.position) < 0.01:
+            return
     sim.nodes.append(attractor)  
-    
-def increase_mass(x, y):
-    click = Node(x, y)
-    for node in sim.nodes:
-        if node.distance(click) < CLICK_RADIUS:
-            node.mass += 0.1

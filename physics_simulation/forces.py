@@ -29,4 +29,3 @@ def pull_to_center(n, sim=None):
 def friction(n1, sim=None):
     v = n.velocity.copy() * -1
     v.setMag(FRICTION_STRENGTH)
-    
