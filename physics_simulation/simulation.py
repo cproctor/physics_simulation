@@ -5,6 +5,7 @@ from inset_bezier import drawInsetBezier, drawShape
 from itertools import combinations
 from convex_polygon import ConvexPolygon
 from collections import defaultdict
+from functions import sample_dirichlet
 from settings import *
 
 class Simulation:
@@ -15,6 +16,7 @@ class Simulation:
         self.nodes = nodes
         self.unary_forces = unary_forces
         self.binary_forces = binary_forces
+        self.dirichlet_samples = [sample_dirichlet(VORONOI_VERTEX_TRIANGLE_SPACING) for i in range(len(nodes) ** 2)]
     
     def step(self):
         "Each step calculates the next moment of the simulation"
@@ -47,12 +49,20 @@ class Simulation:
         vertices, coeffs, edges, polygons = computeVoronoiDiagram([n.position for n in self.nodes])
         if SHOW_VORONOI_VERTEX_TRIANGLES or SHOW_VORONOI_VERTEX_BEZIERS:
             neighbors = defaultdict(set)
-            for lineId, aId, bId in edges:
+            def edgeKey(edge):
+                lId, aId, bId = edge
+                return (vertices[aId][0] + vertices[bId][0], vertices[aId][1] + vertices[bId][1])
+            sortedEdges = sorted(edges, key=edgeKey)
+            for i, (lineId, aId, bId) in enumerate(sortedEdges):
                 if aId == -1 or bId == -1: continue
                 a = PVector(*vertices[aId])
                 b = PVector(*vertices[bId])
-                neighbors[aId].add(a + (b-a)/3)
-                neighbors[bId].add(b + (a-b)/3)
+                if USE_RANDOM_VORONOI_VERTEX_TRIANGLE_SPACING:
+                    left, space, right = self.dirichlet_samples[i]
+                else:
+                    left, space, right = [1.0/3] * 3
+                neighbors[aId].add(a + (b-a) * left)
+                neighbors[bId].add(b + (a-b) * right)
             for id, points in neighbors.items():
                 try:
                     shp = ConvexPolygon(list(points))
@@ -78,7 +88,9 @@ class Simulation:
                 drawShape(vertexVectors)
             if SHOW_VORONOI_INSETS or SHOW_VORONOI_BEZIERS:
                 try:
-                    insetShape = ConvexPolygon(vertexVectors).inset(VORONOI_BEZIER_INSET)
+                    randomSeed(siteId)
+                    insetLength = VORONOI_BEZIER_INSET_MEAN + randomGaussian() * VORONOI_BEZIER_INSET_STD
+                    insetShape = ConvexPolygon(vertexVectors).inset(insetLength)
                     if SHOW_VORONOI_INSETS:
                         stroke(0, 255, 0)
                         insetShape.draw()

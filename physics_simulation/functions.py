@@ -2,6 +2,7 @@
 # Here, they are used to build parametrized versions of functions we'll 
 # need for forces.
 
+from random import gammavariate
 E = 2.71828
 
 def make_sigmoid(midpoint, steepness):
@@ -21,3 +22,11 @@ def make_exponential(steepness):
         return max(0, steepness * E ** (-steepness * x))
     return exponential
     
+def sample_dirichlet(alphas):
+    """
+    Samples the dirichlet distribution, which returns random proportions whose expected values are
+    (n0/n, n1/n, n2/n, ...) where n = n0 + n1 + n2 ...
+    """
+    gammas = [gammavariate(a, 1) for a in alphas]
+    gammaSum = sum(gammas)
+    return [g/gammaSum for g in gammas]

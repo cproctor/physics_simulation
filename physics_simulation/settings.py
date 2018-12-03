@@ -15,13 +15,24 @@ SHOW_VORONOI_VERTEX_TRIANGLES = False
 SHOW_VORONOI_VERTEX_BEZIERS = True
 
 # Determines how much the bezier curves should be inset within Voronoi boundaries.
-VORONOI_BEZIER_INSET = 20
+# If you don't want variation, set standard deviation to zero.
+VORONOI_BEZIER_INSET_MEAN = 50
+VORONOI_BEZIER_INSET_STD = 5
+
+# When drawing voronoi vertex triangles, determines where triangle vertices should fall
+# along each voronoi edge. Should be three numbers, used to parametrize a dirichlet 
+# distribution. The expected spacing will be proportional to these numbers. So for example
+# [1,2,1] would give an expected spacing of triangle vertices 25% of the way along 
+# each edge. Scale up the numbers for a more diffuse sample.
+# Set USE_RANDOM_VORONOI_VERTEX_TRIANGLE_SPACING to False for deterministic even spacing.
+USE_RANDOM_VORONOI_VERTEX_TRIANGLE_SPACING = False
+VORONOI_VERTEX_TRIANGLE_SPACING = [10, 10, 10]
 
 # =================================================================================
 # Node initialization
 # =================================================================================
 # Either "grid", "circle", "two_circles", or "random"
-INITIAL_NODE_LAYOUT = "grid"
+INITIAL_NODE_LAYOUT = "random"
 # In the particle simulation, particles have point masses that affect their
 # momentum and possibly how forces act on them. Choose either "constant" or "random" mass.
 NODE_MASS = "constant"
@@ -29,7 +40,7 @@ NODE_MASS = "constant"
 NUM_NODES = 36
 # Only used if initial node layout is "grid". Adds some jitter
 # to each node's position so they aren't completely regular.
-GRID_JITTER = 0
+GRID_JITTER = 5
 
 # =================================================================================
 # Forces
