@@ -33,10 +33,10 @@ class ConvexPolygon:
         "Triplets of points about each corner"
         return tuples([self.points[-1]] + self.points + [self.points[0]], 3)
     
-    def inset(self, i):
+    def inset(self, i, depth=0):
         "Bumps all edges in by i"
+        print("In inset with depth {}".format(depth))
         if i == 0: return self
-        print("INSETTING BY {} WITH: ".format(i))
         bisectors = self.bisector_rays(i)
         bisectorPairs = tuples(bisectors + [bisectors[0]], 2)
         angles = self.corner_angles()
@@ -44,18 +44,21 @@ class ConvexPolygon:
         edgeEventInsets = []
 
         for (a, b), (angA, angB) in zip(bisectorPairs, anglePairs):
-            x = Ray.intersection(a, b)
-            intersectionInsetA = PVector.dist(a.pos, x) * sin(angA/2)
-            intersectionInsetB = PVector.dist(b.pos, x) * sin(angB/2)
-            dst = min(intersectionInsetA, intersectionInsetB)
-            edgeEventInsets.append(dst if dst < i else None)
+            try:
+                x = Ray.intersection(a, b)
+                intersectionInsetA = PVector.dist(a.pos, x) * sin(angA/2)
+                intersectionInsetB = PVector.dist(b.pos, x) * sin(angB/2)
+                dst = min(intersectionInsetA, intersectionInsetB)
+                edgeEventInsets.append(dst if dst < i else None)
+            except Ray.HasNoIntersection:
+                edgeEventInsets.append(None)
         if any(edgeEventInsets):            
             minDist = min(d for d in edgeEventInsets if d)
-            print("  - INSET TO INTERSECTION AT {}".format(minDist))
             insets = self.bisector_rays(minDist)
             pts = [a.dest for a, b in tuples(insets + [insets[0]], 2) if not near(a.dest, b.dest)]
-            print("  - NEW SHAPE: {}".format(pts))
-            return ConvexPolygon(pts).inset(i - minDist)
+            if depth > self.MAX_INSET_DEPTH:
+                raise self.NoInset
+            return ConvexPolygon(pts).inset(i - minDist, depth=depth+1)
         else:
             pts = [b.dest for b in bisectors]
             return ConvexPolygon(pts)
@@ -73,13 +76,22 @@ class ConvexPolygon:
     def corner_angles(self):
         return [PVector.angleBetween(b-a, b-c) for a, b, c in self.corners()]
     
-    def draw(self, bisectorRays=0):
+    def draw(self):
         beginShape()
         for v in self.points + [self.points[0]]:
             vertex(v.x, v.y)
         endShape()
-        if bisectorRays:
-            for ray in self.bisector_rays(bisectorRays):
-                ray.draw()
+                
+    def drawBezier(self):
+        bzPts = iter(zip(self.midpoints(), self.points))
+        beginShape()
+        v0, cp0 = next(bzPts)
+        vertex(v0.x, v0.y)
+        for v, cp in bzPts:
+            bezierVertex(cp.x, cp.y, cp.x, cp.y, v.x, v.y)
+        bezierVertex(cp0.x, cp0.y, cp0.x, cp0.y, v0.x, v0.y)
+        endShape()
     
+    MAX_INSET_DEPTH = 5
     class TooFewPoints(Exception): pass
+    class NoInset(Exception): pass

@@ -3,6 +3,8 @@ from node import Node
 from voronoi import computeVoronoiDiagram
 from inset_bezier import drawInsetBezier, drawShape
 from itertools import combinations
+from convex_polygon import ConvexPolygon
+from collections import defaultdict
 from settings import *
 
 class Simulation:
@@ -43,6 +45,26 @@ class Simulation:
         
     def drawVoronoi(self):
         vertices, coeffs, edges, polygons = computeVoronoiDiagram([n.position for n in self.nodes])
+        if SHOW_VORONOI_VERTEX_TRIANGLES or SHOW_VORONOI_VERTEX_BEZIERS:
+            neighbors = defaultdict(set)
+            for lineId, aId, bId in edges:
+                if aId == -1 or bId == -1: continue
+                a = PVector(*vertices[aId])
+                b = PVector(*vertices[bId])
+                neighbors[aId].add(a + (b-a)/3)
+                neighbors[bId].add(b + (a-b)/3)
+            for id, points in neighbors.items():
+                try:
+                    shp = ConvexPolygon(list(points))
+                    if SHOW_VORONOI_VERTEX_TRIANGLES:
+                        stroke(255, 0, 255)
+                        shp.draw()
+                    if SHOW_VORONOI_VERTEX_BEZIERS:
+                        stroke(0, 255, 255)
+                        shp.drawBezier()
+                except ConvexPolygon.TooFewPoints:
+                    continue
+        
         for siteId, edges in polygons.items():
             if not self._polygon_is_closed(edges): continue
             vertexIds = [v1 for lId, v1, v2 in edges] + [v2 for lId, v1, v2 in edges]
@@ -54,15 +76,18 @@ class Simulation:
                 stroke(0,0,255)
                 noFill()
                 drawShape(vertexVectors)
-            if SHOW_VORONOI_BEZIERS:
-                shp = ConvexPolygon(vertexVectors).inset(VORONOI_BEZIER_INSET)
-                if SHOW_VORONOI_INSETS:
-                    stroke(0, 255, 0)
-                    shp.draw()
-                
-                stroke(255,255,0)
-                drawInsetBezier(vertexVectors, inset=VORONOI_BEZIER_INSET, drawInsetShape=SHOW_VORONOI_INSETS)
-                        
+            if SHOW_VORONOI_INSETS or SHOW_VORONOI_BEZIERS:
+                try:
+                    insetShape = ConvexPolygon(vertexVectors).inset(VORONOI_BEZIER_INSET)
+                    if SHOW_VORONOI_INSETS:
+                        stroke(0, 255, 0)
+                        insetShape.draw()
+                    if SHOW_VORONOI_BEZIERS:
+                        stroke(255,255,0)
+                        insetShape.drawBezier()
+                except (ConvexPolygon.TooFewPoints, ConvexPolygon.NoInset, ZeroDivisionError):
+                    continue
+                                            
     def _polygon_is_closed(self, edges):
         for edge in edges:
             lineId, v1, v2 = edge

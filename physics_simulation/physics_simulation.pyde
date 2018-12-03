@@ -11,7 +11,6 @@ if INITIAL_NODE_LAYOUT == 'random':
     nodes = random_nodes(WIDTH, HEIGHT, NUM_NODES)
 elif INITIAL_NODE_LAYOUT == 'grid':
     gridSize = int(sqrt(NUM_NODES))
-    print(gridSize)
     nodes = node_grid(350, 350, 100, 100, gridSize, gridSize, jitter=2)
 elif INITIAL_NODE_LAYOUT == 'circle':
     nodes = node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/8, NUM_NODES)

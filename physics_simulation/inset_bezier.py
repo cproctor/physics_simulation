@@ -38,10 +38,7 @@ def insetVertices(points, inset):
     return result
         
 
-def drawInsetBezier(points, inset=0, drawInsetShape=False):
-    insetPts = insetVertices(points, inset)
-    if drawInsetShape:
-        drawShape(insetPts)
+def drawInsetBezier(points):
     midpoints = [midpoint(a, b) for a, b in edges(insetPts)]
     bzPts = iter(zip(midpoints, insetPts))
     beginShape()
