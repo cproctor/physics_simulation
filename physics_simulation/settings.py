@@ -8,6 +8,7 @@ LIVE = True
 # Press 's' to save a CSV file of node positions to this file. 
 CSV_FILE = "simulation.csv"
 SHOW_RECTANGLE = True
+SHOW_NODES = False
 SHOW_VORONOI_BOUNDARIES = False
 SHOW_VORONOI_INSETS = False
 SHOW_VORONOI_BEZIERS = False

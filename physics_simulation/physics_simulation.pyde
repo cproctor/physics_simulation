@@ -50,14 +50,9 @@ def setup():
 def draw():
     background(1)
     noStroke()
-    for node in sim.nodes:
-        node.draw()
-        if node.control:
-            fill(0,0,255)
-            ellipse(node.position.x, node.position.y, 10, 10)
-        else:
-            fill(255)
-            ellipse(node.position.x, node.position.y, 5, 5)
+    if SHOW_NODES:
+        for node in sim.nodes:
+            node.draw()
     if SHOW_RECTANGLE:
         sim.drawRectangle()
     sim.drawVoronoi()
