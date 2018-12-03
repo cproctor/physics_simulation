@@ -55,8 +55,13 @@ class Simulation:
                 noFill()
                 drawShape(vertexVectors)
             if SHOW_VORONOI_BEZIERS:
+                shp = ConvexPolygon(vertexVectors).inset(VORONOI_BEZIER_INSET)
+                if SHOW_VORONOI_INSETS:
+                    stroke(0, 255, 0)
+                    shp.draw()
+                
                 stroke(255,255,0)
-                drawInsetBezier(vertexVectors, inset=VORONOI_BEZIER_INSET)
+                drawInsetBezier(vertexVectors, inset=VORONOI_BEZIER_INSET, drawInsetShape=SHOW_VORONOI_INSETS)
                         
     def _polygon_is_closed(self, edges):
         for edge in edges:

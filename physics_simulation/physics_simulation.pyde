@@ -2,7 +2,7 @@
 # This allows local structure, such as a consistent spacing between points. 
 
 from forces import *
-from node import Node, random_nodes, node_grid
+from node import Node, random_nodes, node_grid, node_circle
 from simulation import Simulation
 from math import sqrt
 from settings import *
@@ -13,6 +13,11 @@ elif INITIAL_NODE_LAYOUT == 'grid':
     gridSize = int(sqrt(NUM_NODES))
     print(gridSize)
     nodes = node_grid(350, 350, 100, 100, gridSize, gridSize, jitter=2)
+elif INITIAL_NODE_LAYOUT == 'circle':
+    nodes = node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/8, NUM_NODES)
+elif INITIAL_NODE_LAYOUT == 'two_circles':
+    nodes = (node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/16, NUM_NODES/2) + 
+             node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/8, NUM_NODES/2))
 else:
     raise ValueError("Invalid value for INITIAL_NODE_LAYOUT")
 
@@ -25,7 +30,8 @@ sim = Simulation(
     ht=HEIGHT, 
     nodes = nodes,
     unary_forces=[
-        pull_to_center
+        pull_to_center, 
+        friction
     ],
     binary_forces=[
         repulsion,
@@ -47,7 +53,6 @@ def draw():
     noStroke()
     for node in sim.nodes:
         node.draw()
-        
         if node.control:
             fill(0,0,255)
             ellipse(node.position.x, node.position.y, 10, 10)
@@ -57,7 +62,6 @@ def draw():
     if SHOW_RECTANGLE:
         sim.drawRectangle()
     sim.drawVoronoi()
-    
     if LIVE:
         sim.step()
     

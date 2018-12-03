@@ -30,7 +30,7 @@ class Node:
     
 # Generating functions
 def random_nodes(wt, ht, count):
-    return [Node(random(wt), random(ht), 1) for i in range(count)]
+    return [Node(random(wt), random(ht)) for i in range(count)]
 
 def node_grid(x, y, wt, ht, rows, cols, jitter=0):
     xSpace = wt/cols
@@ -41,3 +41,7 @@ def node_grid(x, y, wt, ht, rows, cols, jitter=0):
             node.position.x += randomGaussian() * jitter
             node.position.y += randomGaussian() * jitter
     return grid
+
+def node_circle(c, r, n):
+    return [Node(c.x + r*cos(float(i)/n * TWO_PI), c.y + r*sin(float(i)/n * TWO_PI)) for i in range(n)]
+    

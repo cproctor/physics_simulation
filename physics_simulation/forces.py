@@ -11,13 +11,13 @@ def repulsion(n1, n2, sim=None):
     v.setMag(REPULSION_STRENGTH / (n1.position.dist(n2.position) ** 2))
     return v
 
-aggregation_strength = make_sigmoid(AGGREGATION_MIDPOINT, AGGREGATION_STEEPNESS)
+aggregation = make_sigmoid(AGGREGATION_MIDPOINT, AGGREGATION_STEEPNESS)
 
 def control_node_aggregation(n1, n2, sim=None):
     "Pulls nodes toward control nodes"
     if not n2.control: return PVector(0,0)
     v = n2.position - n1.position
-    v.setMag(aggregation_strength(n1.position.dist(n2.position)))
+    v.setMag(AGGREGATION_STRENGTH * aggregation(n1.position.dist(n2.position)))
     return v
 
 def pull_to_center(n, sim=None):
@@ -26,6 +26,7 @@ def pull_to_center(n, sim=None):
     v.setMag(PULL_TO_CENTER_STRENGTH)
     return v
 
-def friction(n1, sim=None):
+def friction(n, sim=None):
     v = n.velocity.copy() * -1
-    v.setMag(FRICTION_STRENGTH)
+    v.setMag(FRICTION_STRENGTH * v.mag())
+    return v
