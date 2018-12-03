@@ -36,17 +36,5 @@ class Ray:
             y = a.slope * x + a.intercept
         return PVector(x, y)
 
-    @classmethod
-    def XintersectionCoeffs(cls, a, b):
-        r = ((b.pos.y - a.pos.y + (b.dir.y/b.dir.x)*(a.pos.x - b.pos.x)) /
-             (a.dir.y - (b.dir.y/b.dir.x)*a.dir.x))
-        s = (a.pos.x - b.pos.x + a.dir.x * r)/b.dir.x
-        return r, s
-    
-    @classmethod
-    def Xintersection(cls, a, b):
-        r, s = cls.intersectionCoeffs(a, b)
-        return a.slide(r)
-    
     class HasNoIntersection(Exception):
         pass
