@@ -1,64 +1,84 @@
-# Size of window
-WIDTH = 800
-HEIGHT = 800
-# When LIVE, the simulation will start in a running state. 
-# Use the space bar to control live state: once you press space bar,
-# the simulation will only run while it is pressed. 
-LIVE = True
-# Press 's' to save a CSV file of node positions to this file. 
-CSV_FILE = "simulation.csv"
-SHOW_RECTANGLE = True
-SHOW_NODES = False
-SHOW_VORONOI_BOUNDARIES = False
-SHOW_VORONOI_INSETS = False
-SHOW_VORONOI_BEZIERS = False
-SHOW_VORONOI_VERTEX_TRIANGLES = False
-SHOW_VORONOI_VERTEX_BEZIERS = True
+import forces
+import particle
+import styles
 
-# Determines how much the bezier curves should be inset within Voronoi boundaries.
-# If you don't want variation, set standard deviation to zero.
-VORONOI_BEZIER_INSET_MEAN = 50
-VORONOI_BEZIER_INSET_STD = 5
+# Don't change anything in DefaultSettings. Instead, use MySettings (below), or other subclasses. 
+# That way, if you don't like your changes the defaults are still available. 
+class DefaultSettings:
+    """
+    A static grid of points. Click to add control nodes. Particles are attracted to control nodes.
+    """
+    
+    # Initial particles. You can change these values; see other settings below for other ways to initialize particles. 
+    PARTICLES = particle.grid(x=200, y=200, wt=400, ht=400, rows=4, cols=4, jitter=0)
+    
+    # Size of window
+    WIDTH = 800
+    HEIGHT = 800
 
-# When drawing voronoi vertex triangles, determines where triangle vertices should fall
-# along each voronoi edge. Should be three numbers, used to parametrize a dirichlet 
-# distribution. The expected spacing will be proportional to these numbers. So for example
-# [1,2,1] would give an expected spacing of triangle vertices 25% of the way along 
-# each edge. Scale up the numbers for a more diffuse sample.
-# Set USE_RANDOM_VORONOI_VERTEX_TRIANGLE_SPACING to False for deterministic even spacing.
-USE_RANDOM_VORONOI_VERTEX_TRIANGLE_SPACING = False
-VORONOI_VERTEX_TRIANGLE_SPACING = [10, 10, 10]
+    # Whether the simulation should run on its own
+    LIVE = False
+    
+    # View options. 
+    SHOW_PARTICLES = True
+    SHOW_MESH_TRIANGLES = True
+    SHOW_VORONOI_SITES = False
+    SHOW_VORONOI_SITE_INSETS = False
+    SHOW_VORONOI_INSET_BEZIERS = False
+    
+    # Styling and parameters for view options
+    MESH_TRIANGLE_STYLE = styles.grey_lines
+    VORONOI_SITE_STYLE = styles.blue_lines
+    CONTROL_NODE_SIZE = 15
+    CONTROL_NODE_STYLE = styles.magenta_fill
+    PARTICLE_SIZE = 10
+    PARTICLE_STYLE = styles.dark_grey_fill
+    VORONOI_SITE_INSETS = [10, 20, 30]
+    VORONOI_SITE_INSET_STYLE = styles.thin_green_lines
+    VORONOI_BEZIER_INSET = 10
+    VORONOI_INSET_BEZIER_STYLE = styles.thin_yellow_lines
+    
+    # The particle simulation updates at every step based on forces. Some are unary (operating 
+    # on individual nodes) and some are binary (operating on pairs of nodes). 
+    UNARY_FORCES= [forces.pull_to_center, forces.friction]
+    BINARY_FORCES= [forces.gravity, forces.control_node_aggregation]
 
-# =================================================================================
-# Node initialization
-# =================================================================================
-# Either "grid", "circle", "two_circles", or "random"
-INITIAL_NODE_LAYOUT = "random"
-# In the particle simulation, particles have point masses that affect their
-# momentum and possibly how forces act on them. Choose either "constant" or "random" mass.
-NODE_MASS = "constant"
-# If INITIAL_NODE_LAYOUT is "grid", NUM_NODES will be rounded to the closest perfect square. 
-NUM_NODES = 36
-# Only used if initial node layout is "grid". Adds some jitter
-# to each node's position so they aren't completely regular.
-GRID_JITTER = 5
+    # Gravity causes particles to be drawn together (may be set negative)
+    GRAVITY_STRENGTH = 0
 
-# =================================================================================
-# Forces
-# =================================================================================
-# The particle simulation updates at every step based on forces. Some are unary (operating 
-# on individual nodes) and some are binary (operating on pairs of nodes). 
+    # Pulls particles to the center.
+    PULL_TO_CENTER_STRENGTH = 0
 
-# Repulsion is like gravity, but in reverse, causing nodes to be pushed away from one another.
-REPULSION_STRENGTH = 800
+    # Aggregation pulls nodes toward control nodes (added by clicking)
+    AGGREGATION_STRENGTH = 1
+    AGGREGATION_MIDPOINT = 200   
+    AGGREGATION_STEEPNESS = 1
 
-# Pulls nodes to the center. Helpful 
-PULL_TO_CENTER_STRENGTH = 0
-
-# Aggregation pulls nodes toward control nodes (added by clicking)
-AGGREGATION_STRENGTH = 1
-AGGREGATION_MIDPOINT = 200   
-AGGREGATION_STEEPNESS = 1
-
-# Friction causes nodes to decelerate. Should be between 0 and 1.
-FRICTION_STRENGTH = 0.4
+    # Friction causes nodes to decelerate. Should be between 0 and 1.
+    FRICTION_STRENGTH = 0
+    
+    SVG_FILENAME = "particles.svg"
+    
+class SolarSystemSettings(DefaultSettings):
+    "Planets orbiting a sun"
+    PARTICLES = particle.planets(cx=400, cy=400, rMean=100, rStd=10, n=5, planet_velocity=10)
+    GRAVITY_STRENGTH = 100
+    LIVE = True
+    
+class BubblesSettings(DefaultSettings):
+    """
+    Particles have negative gravity, so they are repelled from one another. 
+    Balancing this, there is a constant pull toward the center. Also, there is friction 
+    so that particles come to a halt. 
+    """
+    PARTICLES = particle.gaussian(cx=400, cy=400, std=40, n=20)
+    LIVE = True
+    GRAVITY_STRENGTH = -1000
+    PULL_TO_CENTER_STRENGTH = 0.5
+    FRICTION_STRENGTH = 0.2
+    SHOW_VORONOI_SITES = True
+    SHOW_MESH_TRIANGLES = False
+    
+class MySettings(DefaultSettings):
+    "My custom settings. Over-ride defaults here instead of changing them, so that if you don't like what you did, you can always go back to the defaults."
+    # Since this is a subclass of DefaultSettings, all of its properties are inherited unless you declare new values. 

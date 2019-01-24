@@ -35,7 +35,7 @@ class ConvexPolygon:
     
     def inset(self, i, depth=0):
         "Bumps all edges in by i"
-        print("In inset with depth {}".format(depth))
+        #print("In inset with depth {}".format(depth))
         if i == 0: return self
         bisectors = self.bisector_rays(i)
         bisectorPairs = tuples(bisectors + [bisectors[0]], 2)
@@ -76,13 +76,13 @@ class ConvexPolygon:
     def corner_angles(self):
         return [PVector.angleBetween(b-a, b-c) for a, b, c in self.corners()]
     
-    def draw(self):
+    def render(self):
         beginShape()
         for v in self.points + [self.points[0]]:
             vertex(v.x, v.y)
         endShape()
                 
-    def drawBezier(self):
+    def render_bezier(self):
         bzPts = iter(zip(self.midpoints(), self.points))
         beginShape()
         v0, cp0 = next(bzPts)

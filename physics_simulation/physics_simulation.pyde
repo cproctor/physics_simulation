@@ -1,83 +1,88 @@
-# In this sketch, each point exerts forces on its neighbors. 
-# This allows local structure, such as a consistent spacing between points. 
-
-from forces import *
-from node import Node, random_nodes, node_grid, node_circle
+add_library('svg')
+from controls import KeyControls
 from simulation import Simulation
-from math import sqrt
-from settings import *
+from mesh import Mesh
+import settings
+import particle
+import forces
+import styles
 
-if INITIAL_NODE_LAYOUT == 'random':
-    nodes = random_nodes(WIDTH, HEIGHT, NUM_NODES)
-elif INITIAL_NODE_LAYOUT == 'grid':
-    gridSize = int(sqrt(NUM_NODES))
-    nodes = node_grid(350, 350, 100, 100, gridSize, gridSize, jitter=2)
-elif INITIAL_NODE_LAYOUT == 'circle':
-    nodes = node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/8, NUM_NODES)
-elif INITIAL_NODE_LAYOUT == 'two_circles':
-    nodes = (node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/16, NUM_NODES/2) + 
-             node_circle(PVector(WIDTH/2, HEIGHT/2), (WIDTH+HEIGHT)/8, NUM_NODES/2))
-else:
-    raise ValueError("Invalid value for INITIAL_NODE_LAYOUT")
+# =================================================================
+# INSTRUCTIONS
+# - This is a pretty complex simulation, but it's entirely controlled
+#   by a collection of settings. 
+# - There are several predefined different collections of settings
+#   below. Uncomment the one you want to use. 
+# - You can also define your own settings. See 'settings.py'.
+#   
+# s = settings.DefaultSettings()
+# s = settings.SolarSystemSettings()
+s = settings.BubblesSettings()
+# =================================================================
 
-if NODE_MASS == "random":
-    for node in nodes:
-        node.mass = randomGaussian() * 10
-    
-sim = Simulation(
-    wt=WIDTH, 
-    ht=HEIGHT, 
-    nodes = nodes,
-    unary_forces=[
-        pull_to_center, 
-        friction
-    ],
-    binary_forces=[
-        repulsion,
-        control_node_aggregation,
-    ], 
-)
+sim = Simulation(s)
+mesh = Mesh(sim.positions(), s)
 
 def setup():
-    size(WIDTH, HEIGHT)
+    size(s.WIDTH, s.HEIGHT)
     background(0)
-    noStroke()
-    for node in sim.nodes:
-        node.draw()
-    sim.drawVoronoi()
-    sim.label_nodes()
+    mesh.render()
+    sim.render()
     
 def draw():
+    global mesh
     background(1)
-    noStroke()
-    if SHOW_NODES:
-        for node in sim.nodes:
-            node.draw()
-    if SHOW_RECTANGLE:
-        sim.drawRectangle()
-    sim.drawVoronoi()
-    if LIVE:
+    mesh.render()
+    sim.render()
+    if s.LIVE:
         sim.step()
+        mesh = Mesh(sim.positions(), s)
+       
+# ----------------------------------------------------------------------
+# The rest is just defining the controls: binding key-presses to actions
+# ----------------------------------------------------------------------
+ 
+def run():
+    s.LIVE = True
+def pause():
+    s.LIVE = False
+def toggle_particles():
+    s.SHOW_PARTICLES = not s.SHOW_PARTICLES
+def toggle_mesh_triangles():
+    s.SHOW_MESH_TRIANGLES = not s.SHOW_MESH_TRIANGLES
+def toggle_voronoi_sites():
+    s.SHOW_VORONOI_SITES = not s.SHOW_VORONOI_SITES
+def toggle_voronoi_site_insets():
+    s.SHOW_VORONOI_SITE_INSETS = not s.SHOW_VORONOI_SITE_INSETS
+def toggle_voronoi_inset_beziers():
+    s.SHOW_VORONOI_INSET_BEZIERS = not s.SHOW_VORONOI_INSET_BEZIERS
+def save_to_svg():
+    beginRecord(SVG, s.SVG_FILENAME);
+    mesh.render()
+    sim.render()
+    endRecord()
+    print("Saved current view to {}".format(s.SVG_FILENAME))
+
+controls = KeyControls(s.__doc__.strip())
+controls.bind_press(' ', "run the simulation", run)
+controls.bind_release(' ', "pause the simulation", pause)
+controls.bind_press('p', "Show/hide particles", toggle_particles)
+controls.bind_press('t', "Show/hide mesh triangles", toggle_mesh_triangles)
+controls.bind_press('v', "Show/hide voronoi sites", toggle_voronoi_sites)
+controls.bind_press('i', "Show/hide voronoi insets", toggle_voronoi_site_insets)
+controls.bind_press('b', "Show/hide voronoi beziers", toggle_voronoi_inset_beziers)
+controls.bind_press('s', "Save current view to SVG", save_to_svg)
+controls.show_help()
     
 def mouseClicked():
-    add_attractor(mouseX, mouseY)
+    global mesh
+    sim.add_control_node(mouseX, mouseY)
+    mesh = Mesh(sim.positions(), s)
+    mesh.render()
+    sim.render()
     
 def keyPressed():
-    if key == ' ':
-        global LIVE
-        LIVE = True
-    if key == 's':
-        sim.export_csv(CSV_FILE)
+    controls.handle_press()
     
 def keyReleased():
-    if key == ' ':
-        global LIVE
-        LIVE = False
-        
-def add_attractor(x, y):  
-    attractor = Node(x, y, control=True, fixed=True)
-    # Prevent nodes on top of each other (zero-division error)
-    for node in sim.nodes: 
-        if node.position.dist(attractor.position) < 0.01:
-            return
-    sim.nodes.append(attractor)  
+    controls.handle_release()
