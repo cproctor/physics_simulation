@@ -1,5 +1,8 @@
 # Physics Simulation
 
+![insets.png](Insets)
+![beziers.png](Beziers)
+
 This Processing project overlays two different phenomena:
 
 - First, it's a physics simulation. Particles are subjected to forces, and time moves
