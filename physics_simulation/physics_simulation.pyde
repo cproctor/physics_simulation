@@ -32,7 +32,7 @@ def setup():
     
 def draw():
     global mesh
-    background(1)
+    background(0)
     mesh.render()
     sim.render()
     if s.LIVE:
