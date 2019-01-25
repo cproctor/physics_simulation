@@ -1,7 +1,6 @@
-# Physics Simulation
+# Physics simulation with mesh
 
-![Insets](insets.png | width=300)
-![Beziers](beziers.png | width=300)
+<img src="insets.png" width="300"> <img src="beziers.png" width="300">
 
 This Processing project overlays two different phenomena:
 
