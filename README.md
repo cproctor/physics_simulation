@@ -1,7 +1,7 @@
 # Physics Simulation
 
-![Insets](insets.png)
-![Beziers](beziers.png)
+![Insets](insets.png | width=300)
+![Beziers](beziers.png | width=300)
 
 This Processing project overlays two different phenomena:
 
