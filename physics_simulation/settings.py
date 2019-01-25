@@ -17,7 +17,7 @@ class DefaultSettings:
     HEIGHT = 800
 
     # Whether the simulation should run on its own
-    LIVE = False
+    LIVE = True
     
     # View options. 
     SHOW_PARTICLES = True
