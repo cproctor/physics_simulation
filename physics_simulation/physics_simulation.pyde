@@ -15,9 +15,10 @@ import styles
 #   below. Uncomment the one you want to use. 
 # - You can also define your own settings. See 'settings.py'.
 #   
-# s = settings.DefaultSettings()
+s = settings.DefaultSettings()
 # s = settings.SolarSystemSettings()
-s = settings.BubblesSettings()
+# s = settings.BubblesSettings()
+# s = settings.MySettings()
 # =================================================================
 
 sim = Simulation(s)
