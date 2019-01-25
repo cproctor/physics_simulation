@@ -1,7 +1,7 @@
 # Physics Simulation
 
-![Insets](https://raw.githubusercontent.com/cproctor/physics_simulation/master/insets.png)
-![Beziers](https://raw.githubusercontent.com/cproctor/physics_simulation/master/beziers.png)
+![Insets](insets.png)
+![Beziers](beziers.png)
 
 This Processing project overlays two different phenomena:
 
